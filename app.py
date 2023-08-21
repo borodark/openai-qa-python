@@ -2,6 +2,12 @@ import os
 
 import openai
 from flask import Flask, redirect, render_template, request, url_for
+# imports
+import ast  # for converting embeddings saved as strings back to arrays
+import openai  # for calling the OpenAI API
+import pandas as pd  # for storing text and embeddings data
+import tiktoken  # for counting tokens
+from scipy import spatial  # for calculating vector similarities for search
 
 app = Flask(__name__)
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -35,15 +41,17 @@ def index():
         embedings_of_the_question = {} # TODO
         #2. TODO search a DB key, embedings of which is closest
         db_key_with_closest_embedings = {} # TODO
-        response = #TODO call chart
-        return redirect(url_for("index", result=response.choices[0].text))
+        # response = { choices: [ { text: "it's Fake!"} ] } # TODO
+        return redirect(url_for("index",
+                                result="it's Fake!" # TODO result=response.choices[0].text
+                                ))
 
     result = request.args.get("result")
     return render_template("index.html", result=result)
 
 ###
 
-strings, relatednesses = strings_ranked_by_relatedness("curling gold medal", df, top_n=5)
-for string, relatedness in zip(strings, relatednesses):
-    print(f"{relatedness=:.3f}")
-    display(string)
+#strings, relatednesses = strings_ranked_by_relatedness("curling gold medal", df, top_n=5)
+#for string, relatedness in zip(strings, relatednesses):
+#    print(f"{relatedness=:.3f}")
+#    display(string)
