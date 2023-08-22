@@ -36,15 +36,11 @@ def strings_ranked_by_relatedness(
     strings, relatednesses = zip(*strings_and_relatednesses)
     return strings[:top_n], relatednesses[:top_n]
 
-def get_embedings_of_the_question(a_question: str):
-    return {}
+def get_embedding_for(text: str, model="text-embedding-ada-002"):
+   text = text.replace("\n", " ")
+   return openai.Embedding.create(input = [text], model=model)['data'][0]['embedding']
 
-def read_local(files_list):
-    df1 = (pd.read_json(f) for f in files_list)
-    df = pd.concat(df1, ignore_index=True)
-    return df
-
-def load_db_():
+def save_adress_embedding_to_csv():
     file_list = glob.glob("data/z*.txt")
     data_list=[]
     if file_list:
@@ -57,8 +53,12 @@ def load_db_():
                 # read rest of the lines that is description from zillow page
                 description = f.read()
                 pprint("address -----------> ")
-                data_list.append({"address": address, "description": description})
-    pprint(data_list)
+                data_list.append({"address": address.strip(), "description": description.strip()})
+        df = pd.DataFrame.from_records(data=data_list)
+        df["adress_embedding"] = df.address.apply(lambda address: get_embedding_for(address))
+        pprint(df.head(5))
+        df.to_csv("address_embeddings_descriptions.csv")
+
 
 
 @app.route("/", methods=("GET", "POST"))
@@ -67,7 +67,7 @@ def index():
         a_question = request.form["question"]
         pprint(a_question)
         #1. get embedings for question
-        embedings_of_the_question = get_embedings_of_the_question(a_question) #{} # TODO
+        embedings_of_the_question = get_embedding_for(a_question)
         #2. TODO search a DB key, embedings of which is closest
         db_key_with_closest_embedings = {} # TODO
         # response = { choices: [ { text: "it's Fake!"} ] } # TODO
