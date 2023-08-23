@@ -91,3 +91,4 @@ def index():
 #for string, relatedness in zip(strings, relatednesses):
 #    print(f"{relatedness=:.3f}")
 #    display(string)
+# numbers=ast.literal_eval(v[0])

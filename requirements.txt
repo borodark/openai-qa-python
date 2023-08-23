@@ -1,12 +1,8 @@
 certifi
 charset-normalizer
-click
+clickhouse_connect
 #et-xmlfile==1.1.0
 Flask
-idna
-itsdangerous
-Jinja2
-MarkupSafe
 numpy
 openai
 openpyxl
@@ -15,10 +11,5 @@ python-dateutil
 python-dotenv
 pytz
 requests
-six
-toml
-tqdm
-urllib3
-Werkzeug
 tiktoken
 scipy

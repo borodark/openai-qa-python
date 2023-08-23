@@ -1,0 +1,37 @@
+version: "2.2"
+x-common_variables: &common_variables
+  # ++   env_file: environment-of-cubist
+
+services:
+  openai:
+    image: openai
+    hostname: openai
+    container_name: openai
+    ports:
+      - 5000:5000
+    working_dir: /app
+    stdin_open: true
+    tty: true
+    command: bash
+    volumes:
+      - .:/app/
+
+  clickhouse:
+    image: clickhouse/clickhouse-server
+    hostname: clickhouse
+    container_name: clickhouse
+    environment:
+      CLICKHOUSE_DB: openai
+      CLICKHOUSE_USER: lupi
+      CLICKHOUSE_PASSWORD: lupi
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: "1"
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+    ports:
+      - 8123:8123
+      - 9000:9000
+    ulimits:
+      nofile: 262144
+
+volumes:
+  clickhouse-data:
