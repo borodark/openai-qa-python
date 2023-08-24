@@ -1,6 +1,6 @@
 # QA with Embeding
 
-This is an attemt to build simple Question Answer Systems for data about real estate property. 
+This is an attempt to build simple Question Answer Systems for data about real estate property. 
 
 
 ## Setup the docker compose (After cloning this repo and changing current direcrtory into the repo directory)
@@ -27,7 +27,7 @@ c20a49fa2f36   clickhouse/clickhouse-server   "/entrypoint.sh"   3 hours ago   U
 ## Create clickhouse schema and load the data
 
 The file `addess_embeddings_descriptions.csv.gz` contains sample data with `embedings` vectors precomputed for an `address` field.
-The sample data must be loaded into clickhouse. The docker compose uses persistent volume to store clickhouse data and data survive the restarts of docker compose.
+The sample data must be loaded into clickhouse. The docker compose uses persistent volume to store clickhouse data and data survives the restarts of docker compose.
 
 ### Create the schema in clickhouse
 
