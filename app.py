@@ -67,8 +67,10 @@ def save_adress_embedding_to_csv():
 
 def save_table_to_db():
     df = pd.read_csv("addess_embeddings_descriptions.csv.gz")
+    pprint(df.head(2))
     df["address_embeddings"] = df.adress_embedding.apply(lambda string_embedings: np.asarray(ast.literal_eval(string_embedings), dtype='float32'))
-    pprint(df[["address_embeddings"]].head(5))
+    df= df.drop(["adress_embedding","Unnamed: 0"], axis=1)
+    client.insert_df("qa_properties", df)
     return df
 
 
