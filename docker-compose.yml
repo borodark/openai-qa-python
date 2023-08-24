@@ -4,6 +4,9 @@ x-common_variables: &common_variables
 
 services:
   openai:
+    depends_on:
+      clickhouse:
+        condition: service_healthy
     image: openai
     hostname: openai
     container_name: openai
@@ -18,7 +21,7 @@ services:
     working_dir: /app
     stdin_open: true
     tty: true
-    command: bash
+    #command: bash
     volumes:
       - .:/app/
 
@@ -26,6 +29,8 @@ services:
     image: clickhouse/clickhouse-server
     hostname: clickhouse
     container_name: clickhouse
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1
     environment:
       CLICKHOUSE_DB: openai
       CLICKHOUSE_USER: lupi

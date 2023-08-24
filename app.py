@@ -16,11 +16,13 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 EMBEDDING_MODEL = "text-embedding-ada-002"
 GPT_MODEL = "gpt-3.5-turbo"
 
+
 client = clickhouse_connect.get_client(host= os.environ.get('CLICKHOUSE_HOST', 'localhost'),
                                        database= os.environ.get('CLICKHOUSE_DATABASE', 'openai'),
                                        username=os.environ.get('CLICKHOUSE_USERNAME', 'default'),
                                        password=os.environ.get('CLICKHOUSE_PASSWORD', ''),
                                        port=os.environ.get('CLICKHOUSE_PORT', 8123))
+
 # search function
 def strings_ranked_by_relatedness(
     query: str,
@@ -67,10 +69,10 @@ def save_adress_embedding_to_csv():
 
 def save_table_to_db():
     df = pd.read_csv("addess_embeddings_descriptions.csv.gz")
-    pprint(df.head(2))
     df["address_embeddings"] = df.adress_embedding.apply(lambda string_embedings: np.asarray(ast.literal_eval(string_embedings), dtype='float32'))
     df= df.drop(["adress_embedding","Unnamed: 0"], axis=1)
     client.insert_df("qa_properties", df)
+    pprint(df.head(2))
     return df
 
 
@@ -97,6 +99,8 @@ def index():
 
     result = request.args.get("result")
     return render_template("index.html", result=result)
+
+### Create the schema in clickhouse
 
 ###
 
