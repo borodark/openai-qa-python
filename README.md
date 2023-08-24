@@ -45,3 +45,22 @@ It uses the [Flask](https://flask.palletsprojects.com/en/2.0.x/) web framework. 
 You should now be able to access the app at [http://localhost:5000](http://localhost:5000)! For the full context behind this example app, check out the [tutorial](https://beta.openai.com/docs/quickstart).
 
 https://github.com/ClickHouse/laion/blob/main/search.py
+
+### Clickhouse schema
+
+'''sql
+
+CREATE TABLE qa_proerties
+(
+	`adress` String,
+	`_embedding` Array(Float32),
+	`image_embedding` Array(Float32),
+	`orientation` String DEFAULT exif['Image Orientation'],
+	`software` String DEFAULT exif['Image Software'],
+	`copyright` String DEFAULT exif['Image Copyright'],
+	`image_make` String DEFAULT exif['Image Make'],
+	`image_model` String DEFAULT exif['Image Model']
+)
+ENGINE = MergeTree
+ORDER BY (height, width, similarity)
+'''

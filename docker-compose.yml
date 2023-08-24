@@ -7,6 +7,12 @@ services:
     image: openai
     hostname: openai
     container_name: openai
+    environment:
+      CLICKHOUSE_HOST: clickhouse
+      CLICKHOUSE_USERNAME: lupi
+      CLICKHOUSE_PASSWORD: lupi
+      CLICKHOUSE_PORT: 8123
+      CLICKHOUSE_DATABASE: openai
     ports:
       - 5000:5000
     working_dir: /app

@@ -8,13 +8,19 @@ import pandas as pd  # for storing text and embeddings data
 import tiktoken  # for counting tokens
 from scipy import spatial  # for calculating vector similarities for search
 from pprint import pprint
-
+import clickhouse_connect
+import numpy as np
 app = Flask(__name__)
 openai.api_key = os.getenv("OPENAI_API_KEY")
 # models
 EMBEDDING_MODEL = "text-embedding-ada-002"
 GPT_MODEL = "gpt-3.5-turbo"
 
+client = clickhouse_connect.get_client(host= os.environ.get('CLICKHOUSE_HOST', 'localhost'),
+                                       database= os.environ.get('CLICKHOUSE_DATABASE', 'openai'),
+                                       username=os.environ.get('CLICKHOUSE_USERNAME', 'default'),
+                                       password=os.environ.get('CLICKHOUSE_PASSWORD', ''),
+                                       port=os.environ.get('CLICKHOUSE_PORT', 8123))
 # search function
 def strings_ranked_by_relatedness(
     query: str,
@@ -59,6 +65,11 @@ def save_adress_embedding_to_csv():
         pprint(df.head(5))
         df.to_csv("address_embeddings_descriptions.csv")
 
+def save_table_to_db():
+    df = pd.read_csv("addess_embeddings_descriptions.csv.gz")
+    df["address_embeddings"] = df.adress_embedding.apply(lambda string_embedings: np.asarray(ast.literal_eval(string_embedings), dtype='float32'))
+    pprint(df[["address_embeddings"]].head(5))
+    return df
 
 
 @app.route("/", methods=("GET", "POST"))
