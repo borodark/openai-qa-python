@@ -11,7 +11,7 @@
 <body>
   <img src="{{ url_for('static', filename='house.webp') }}" class="icon" />
   <h3>Ask a question about a propety! Please include Street Address into question: "How many bedrooms 21 Pioneer Rd has"</h3>
-  <form action="/" method="post">
+  <form action="/" method="post" style="width: 50%">
       <input type="text" name="question" placeholder="How many bedrooms 21 Pioneer Rd has?" required />
       <input type="submit" value="Get answers" />
   </form>

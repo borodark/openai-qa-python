@@ -4,13 +4,24 @@ This is an attempt to build simple Question Answer Systems for data about real e
 
 Drawn heavily from: https://github.com/openai/openai-cookbook/blob/main/examples/Question_answering_using_embeddings.ipynb
 
+It uses the [Flask](https://flask.palletsprojects.com/en/2.0.x/) web framework.
+
 ## Setup the docker compose (After cloning this repo and changing current direcrtory into the repo directory)
 
-Build the docker image with dependencies:
+
+1. Make a copy of the example environment variables file:
+
+   ```bash
+   $ cp .env.example .env
+   ```
+
+2. Add your [API key](https://beta.openai.com/account/api-keys) to the newly created `.env` file.
+
+3. Build the docker image with dependencies:
 
 `docker build . -t openai`
 
-Start docker compose with `openia` and `clickhouse` containers:
+4. Start docker compose with `openia` and `clickhouse` containers:
 
 `U_ID=$UID docker-compose up --remove-orphans`
 
@@ -28,7 +39,7 @@ c20a49fa2f36   clickhouse/clickhouse-server   "/entrypoint.sh"   3 hours ago   U
 ## Create clickhouse schema and load the data
 
 The file `addess_embeddings_descriptions.csv.gz` contains sample data with `embedings` vectors precomputed for an `address` field.
-The sample data must be loaded into clickhouse. The docker compose uses persistent volume to store clickhouse data and data survives the restarts of docker compose.
+The sample data must be loaded into clickhouse db. The docker compose uses persistent volume to store clickhouse data and data survives the restarts of docker compose.
 
 ### Create the schema in clickhouse
 
@@ -150,46 +161,9 @@ Query id: aa9d23f9-b936-46fa-87a4-e9413b1c8c45
 clickhouse :)
 ```
 
-It uses the [Flask](https://flask.palletsprojects.com/en/2.0.x/) web framework.
+## Making queries, Working with web interface. 
 
-1. If you don’t have Python installed, [install it from here](https://www.python.org/downloads/).
+You should now be able to access the app at [http://localhost:5000](http://localhost:5000)
 
-2. Clone this repository.
 
-3. Navigate into the project directory:
-
-   ```bash
-   $ cd openai-qa-python
-   ```
-
-4. Create a new virtual environment:
-
-   ```bash
-   $ python -m venv venv
-   $ . venv/bin/activate
-   ```
-
-5. Install the requirements:
-
-   ```bash
-   $ pip install -r requirements.txt
-   ```
-
-6. Make a copy of the example environment variables file:
-
-   ```bash
-   $ cp .env.example .env
-   ```
-
-7. Add your [API key](https://beta.openai.com/account/api-keys) to the newly created `.env` file.
-
-8. Run the app:
-
-   ```bash
-   $ flask run
-   ```
-
-You should now be able to access the app at [http://localhost:5000](http://localhost:5000)! For the full context behind this example app, check out the [tutorial](https://beta.openai.com/docs/quickstart).
-
-https://github.com/ClickHouse/laion/blob/main/search.py
-
+![working UX](./works.png)
