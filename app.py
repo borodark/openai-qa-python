@@ -68,9 +68,30 @@ def index():
         #pprint(embedings_of_the_question)
         #2. TODO search a DB key, embedings of which is closest
         parameters = {'question_embedings': embedings_of_the_question }
-        rc = client.query_df('SELECT min(cosineDistance(address_embeddings, {question_embedings:Array(Float32)})) as distance, description FROM qa_properties group by description order by 1 asc limit 1',parameters=parameters)
-        pprint(rc.head())
-        return redirect(url_for("index", result=rc.head()))
+        df = client.query_df('SELECT min(cosineDistance(address_embeddings, {question_embedings:Array(Float32)})) as distance, description FROM qa_properties group by description order by 1 asc limit 1',parameters=parameters)
+        dist= df.iloc[[0]][['distance']]
+        desc=  df.iloc[[0]][['description']]
+        #pprint(desc)
+        query = f"""Use the below description of real estate property to answer the subsequent question. If the answer cannot be found, write "Not possible to answer"
+
+Description of real estate property:
+\"\"\"
+{desc}
+\"\"\"
+
+Question: {a_question}?"""
+
+        response = openai.ChatCompletion.create(
+           messages=[
+              {'role': 'system', 'content': 'You answer questions about real estate property.'},
+              {'role': 'user', 'content': query},
+           ],
+           model=GPT_MODEL,
+           temperature=0,
+        )
+        answer= response['choices'][0]['message']['content']
+        pprint(answer)
+        return redirect(url_for("index", result= answer))
 
     result = request.args.get("result")
     return render_template("index.html", result=result)
