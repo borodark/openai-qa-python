@@ -16,3 +16,4 @@ scipy
 matplotlib
 plotly
 scikit-learn
+flask_json

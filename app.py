@@ -1,7 +1,7 @@
 import glob
 import os
 from flask import Flask, redirect, render_template, request, url_for
-# imports
+from flask_json import FlaskJSON, JsonError, json_response, as_json
 import ast  # for converting embeddings saved as strings back to arrays
 import openai  # for calling the OpenAI API
 import pandas as pd  # for storing text and embeddings data
@@ -10,10 +10,9 @@ from scipy import spatial  # for calculating vector similarities for search
 from pprint import pprint
 import clickhouse_connect
 import numpy as np
-#from openai.embeddings_utils import cosine_similarity
-
 
 app = Flask(__name__)
+FlaskJSON(app)
 openai.api_key = os.getenv("OPENAI_API_KEY")
 # models
 EMBEDDING_MODEL = "text-embedding-ada-002"
@@ -57,22 +56,18 @@ def save_table_to_db():
     pprint(df.head(2))
     return df
 
-
-@app.route("/", methods=("GET", "POST"))
-def index():
-    if request.method == "POST":
-        a_question = request.form["question"]
-        pprint(a_question)
-        #1. get embedings for question
-        embedings_of_the_question = get_embedding_for(a_question)
-        #pprint(embedings_of_the_question)
-        #2. TODO search a DB key, embedings of which is closest
-        parameters = {'question_embedings': embedings_of_the_question }
-        df = client.query_df('SELECT min(cosineDistance(address_embeddings, {question_embedings:Array(Float32)})) as distance, description FROM qa_properties group by description order by 1 asc limit 1',parameters=parameters)
-        dist= df.iloc[[0]][['distance']]
-        desc=  df.iloc[[0]][['description']]
-        #pprint(desc)
-        query = f"""Use the below description of real estate property to answer the subsequent question. If the answer cannot be found, write "Not possible to answer"
+def do_qa(a_question):
+   pprint(a_question)
+   #1. get embedings for question
+   embedings_of_the_question = get_embedding_for(a_question)
+   #pprint(embedings_of_the_question)
+   #2. TODO search a DB key, embedings of which is closest
+   parameters = {'question_embedings': embedings_of_the_question }
+   df = client.query_df('SELECT min(cosineDistance(address_embeddings, {question_embedings:Array(Float32)})) as distance, description FROM qa_properties group by description order by 1 asc limit 1',parameters=parameters)
+   dist= df.iloc[[0]][['distance']]
+   desc=  df.iloc[[0]][['description']]
+   #pprint(desc)
+   query = f"""Use the below description of real estate property to answer the subsequent question. If the answer cannot be found, write "Not possible to answer"
 
 Description of real estate property:
 \"\"\"
@@ -80,28 +75,34 @@ Description of real estate property:
 \"\"\"
 
 Question: {a_question}?"""
+   response = openai.ChatCompletion.create(
+      messages=[
+         {'role': 'system', 'content': 'You answer questions about real estate property.'},
+         {'role': 'user', 'content': query},
+      ],
+      model=GPT_MODEL,
+      temperature=0,
+   )
+   answer= response['choices'][0]['message']['content']
+   pprint(answer)
+   return answer
 
-        response = openai.ChatCompletion.create(
-           messages=[
-              {'role': 'system', 'content': 'You answer questions about real estate property.'},
-              {'role': 'user', 'content': query},
-           ],
-           model=GPT_MODEL,
-           temperature=0,
-        )
-        answer= response['choices'][0]['message']['content']
-        pprint(answer)
+@app.route("/", methods=("GET", "POST"))
+def index():
+    if request.method == "POST":
+        a_question = request.form["question"]
+        answer = do_qa(a_question)
         return redirect(url_for("index", result= answer))
 
     result = request.args.get("result")
     return render_template("index.html", result=result)
 
-### Create the schema in clickhouse
-
-###
-
-#strings, relatednesses = strings_ranked_by_relatedness("curling gold medal", df, top_n=5)
-#for string, relatedness in zip(strings, relatednesses):
-#    print(f"{relatedness=:.3f}")
-#    display(string)
-# numbers=ast.literal_eval(v[0])
+@app.route('/property_data', methods=['POST'])
+def property_data():
+    # We use 'force' to skip mimetype checking to have shorter curl command.
+    data = request.get_json(force=True)
+    try:
+        answer = do_qa(data['question'])
+    except (KeyError, TypeError, ValueError):
+        raise JsonError(description='Invalid value.')
+    return json_response(answer=  answer)

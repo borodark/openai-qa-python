@@ -165,5 +165,16 @@ clickhouse :)
 
 You should now be able to access the app at [http://localhost:5000](http://localhost:5000)
 
-
 ![working UX](./works.png)
+
+
+## Using postman
+
+Send the following `JSON` using `POST` to `localhost:5000/property_data` 
+
+```json
+
+{"question": "what is the price of 22 Wachusett View Dr"}
+
+```
+![working postman](./postman.png)
