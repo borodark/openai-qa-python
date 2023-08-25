@@ -10,6 +10,9 @@ from scipy import spatial  # for calculating vector similarities for search
 from pprint import pprint
 import clickhouse_connect
 import numpy as np
+#from openai.embeddings_utils import cosine_similarity
+
+
 app = Flask(__name__)
 openai.api_key = os.getenv("OPENAI_API_KEY")
 # models
@@ -22,27 +25,6 @@ client = clickhouse_connect.get_client(host= os.environ.get('CLICKHOUSE_HOST', '
                                        username=os.environ.get('CLICKHOUSE_USERNAME', 'default'),
                                        password=os.environ.get('CLICKHOUSE_PASSWORD', ''),
                                        port=os.environ.get('CLICKHOUSE_PORT', 8123))
-
-# search function
-def strings_ranked_by_relatedness(
-    query: str,
-    df: pd.DataFrame,
-    relatedness_fn=lambda x, y: 1 - spatial.distance.cosine(x, y),
-    top_n: int = 1
-) -> tuple[list[str], list[float]]:
-    """Returns a list of strings and relatednesses, sorted from most related to least."""
-    query_embedding_response = openai.Embedding.create(
-        model=EMBEDDING_MODEL,
-        input=query,
-    )
-    query_embedding = query_embedding_response["data"][0]["embedding"]
-    strings_and_relatednesses = [
-        (row["text"], relatedness_fn(query_embedding, row["embedding"]))
-        for i, row in df.iterrows()
-    ]
-    strings_and_relatednesses.sort(key=lambda x: x[1], reverse=True)
-    strings, relatednesses = zip(*strings_and_relatednesses)
-    return strings[:top_n], relatednesses[:top_n]
 
 def get_embedding_for(text: str, model="text-embedding-ada-002"):
    text = text.replace("\n", " ")
@@ -83,19 +65,12 @@ def index():
         pprint(a_question)
         #1. get embedings for question
         embedings_of_the_question = get_embedding_for(a_question)
+        #pprint(embedings_of_the_question)
         #2. TODO search a DB key, embedings of which is closest
-        db_key_with_closest_embedings = {} # TODO
-        # response = { choices: [ { text: "it's Fake!"} ] } # TODO
-        query = 'Which athletes won the gold medal in curling at the 2022 Winter Olympics?'
-        response = openai.ChatCompletion.create(messages=[
-            {'role': 'system', 'content': 'You answer questions about the 2022 Winter Olympics.'},
-            {'role': 'user', 'content': query},],
-                    model=GPT_MODEL,
-                                                temperature=1,
-            )
-        pprint(response)
-        return redirect(url_for("index",
-                                result=response))
+        parameters = {'question_embedings': embedings_of_the_question }
+        rc = client.query_df('SELECT min(cosineDistance(address_embeddings, {question_embedings:Array(Float32)})) as distance, description FROM qa_properties group by description order by 1 asc limit 1',parameters=parameters)
+        pprint(rc.head())
+        return redirect(url_for("index", result=rc.head()))
 
     result = request.args.get("result")
     return render_template("index.html", result=result)

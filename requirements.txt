@@ -13,3 +13,6 @@ pytz
 requests
 tiktoken
 scipy
+matplotlib
+plotly
+scikit-learn
