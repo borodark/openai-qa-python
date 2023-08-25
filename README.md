@@ -2,6 +2,7 @@
 
 This is an attempt to build simple Question Answer Systems for data about real estate property. 
 
+Drawn heavily from: https://github.com/openai/openai-cookbook/blob/main/examples/Question_answering_using_embeddings.ipynb
 
 ## Setup the docker compose (After cloning this repo and changing current direcrtory into the repo directory)
 
@@ -13,7 +14,7 @@ Start docker compose with `openia` and `clickhouse` containers:
 
 `U_ID=$UID docker-compose up --remove-orphans`
 
-Observe the succesful start and open another termianal. 
+Observe the succesful start and open another terminal. 
 To make sure containers are up execute the `docker ps` in the another terminal:
 
 ```
